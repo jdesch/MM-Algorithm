@@ -1,0 +1,5 @@
+*.tmproj
+tmtags
+.DS_Store
+*.pyc
+*.pdf
