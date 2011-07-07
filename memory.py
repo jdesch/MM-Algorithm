@@ -73,7 +73,7 @@ class Memory(object):
             leds.add_discovered_words(words)
             #print "%s" %(words)
             graph_vote = self.connect.vote(words, target, self.meta.meta_values, leds)
-            stat_vote = self.stats.vote(words, target, leds)
+            stat_vote = self.stats.vote2(words, target, leds)
             print "g_vote: %3.3f, %s, s_vote: %3.3f, %s" %(graph_vote[0], graph_vote[1], stat_vote[0], stat_vote[1])
             return self.meta.vote(graph_vote, stat_vote)
         else:

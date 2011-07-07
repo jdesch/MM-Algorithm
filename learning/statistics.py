@@ -62,7 +62,15 @@ class Statistics(object):
                 ret = (val/total, dis)
         leds.statistic_guess(ret[1])
         return ret
+    
+    def vote2(self, words, target, leds):
+        t = self.words[target]
+        total_seen = sum([t.dict["disambiguations"][dis].dict["total"] for dis in t.dict["disambiguations"]])
+        ret = max([(t.dict["disambiguations"][dis].dict["total"], dis) for dis in t.dict["disambiguations"]])
+        leds.statistic_guess(ret[1])
         
+        return (float(ret[0])/float(total_seen), ret[1])
+       
     def best_guess(self, target, leds):
         ret = (0.0, None)
         t = self.words[target]
