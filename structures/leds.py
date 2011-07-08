@@ -12,6 +12,7 @@ class LEDS(object):
         self._words = []
         self.success_info = {}
         self.node_selected_graph = None
+        self.success_info = {"stats_guess": "NONE", "graph_guess": "NONE"}
     
     def add_discovered_words(self, words):
         self._words.append(words)

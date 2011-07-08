@@ -17,9 +17,10 @@ from structures.word import Word, Disambiguation
 
 class Meta:
     def __init__(self):
-        self.inner_stats = {"total" : 0, "correct" : 0, "stats_correct" : 0, "last_update" : 0, 
-                            "last_correct" : 0, "last_value" : None, "old_values" : [] }
-        self.meta_values = {"important_words": {"value":3, "step":1, "history":[]},
+        self.inner_stats = {"total" : 0, "correct" : 1, "stats_correct" : 1, 
+                            "graph_correct" : 0, "last_update" : 0, "last_correct" : 0,
+                             "last_value" : None, "old_values" : [] }
+        self.meta_values = {"important_words": {"value":4, "step":1, "history":[]},
                             "graph_depth": {"value":3, "step":1, "history":[]},
                             "g_correct": {"value":3, "step": 1, "history":[]},
                             "g_incorrect": {"value":-1, "step": -1, "history": []},
@@ -32,12 +33,17 @@ class Meta:
         self.meta_values = meta
         
     def stats_correct(self):
-        return float(stats_correct)/float(correct)
+        return float(self.inner_stats["stats_correct"])/float(self.inner_stats["correct"])
+        
+    def graph_correct(self):
+        return float(self.inner_stats["graph_correct"])/float(self.inner_stats["correct"])
+        
     
     def vote(self, graph_vote, stat_vote):
         ret = None
-        graph_val = graph_vote[0] * (1 - self.inner_stats["stats_correct"])
-        stat_val = stat_vote[0] * self.inner_stats["stats_correct"]
+        graph_val = float(graph_vote[0]) * self.graph_correct()
+        stat_val = float(stat_vote[0]) * self.stats_correct()
+        print "adjustment g_val %s, s_val %s" %(graph_val, stat_val)
         if graph_val > stat_val:
             ret = (graph_val, graph_vote[1])
         else:
@@ -79,10 +85,12 @@ class Meta:
             target.add_info(stats_success, leds.success_info["actual_val"][0])
         
         self.inner_stats["total"] += 1
-        if leds.success_info["actual_val"] == leds.success_info["selected_val"]:
+        if leds.success_info["actual_val"][0] == leds.success_info["selected_val"][1]:
             self.inner_stats["correct"] += 1
-            if leds.success_info["selected_val"] == leds.success_info["stats_guess"]:
+            if leds.success_info["actual_val"][0] == leds.success_info["stats_guess"]:
                 self.inner_stats["stats_correct"] += 1
+            if leds.success_info["actual_val"][0] == leds.success_info["graph_guess"][1]:
+                self.inner_stats["graph_correct"] += 1
     
     def step_value(self, value, reverse = False):
         step = self.meta_values[value]["step"]
@@ -105,6 +113,7 @@ class Meta:
         return sqrt(correct * incorrect * total)
     
     def performance_eval(self, metric_name):
+        print "evaluating performance..."
         ret_val = True
         old_correct, old_std_dev = self.inner_stats["old_values"][-1]
         new_correct = self.get_current_correct()
@@ -117,7 +126,9 @@ class Meta:
     
     def get_random_meta_value(self):
         values = [value for value in self.meta_values.keys()]
-        return values[random.randrange(len(values))]
+        ret = values[random.randrange(len(values))]
+        print "%s meta-value being evaluated next" % ret
+        return 
     
     def optimize(self):
         new_value_required = True
