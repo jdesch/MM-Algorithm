@@ -24,7 +24,7 @@ class Meta:
                             "graph_depth": {"value":3, "step":1, "history":[]},
                             "g_correct": {"value":3, "step": 1, "history":[]},
                             "g_incorrect": {"value":-1, "step": -1, "history": []},
-                            "update_freq": {"value":1000, "step": 100, "history":[]}}
+                            "update_freq": {"value":300, "step": 100, "history":[]}}
     
     def load_inner_stats(self, stats):
         self.inner_stats = stats
@@ -43,7 +43,7 @@ class Meta:
         ret = None
         graph_val = float(graph_vote[0]) * self.graph_correct()
         stat_val = float(stat_vote[0]) * self.stats_correct()
-        print "adjustment g_val %s, s_val %s" %(graph_val, stat_val)
+        #print "adjustment g_val %s, s_val %s" %(graph_val, stat_val)
         if graph_val > stat_val:
             ret = (graph_val, graph_vote[1])
         else:
@@ -91,6 +91,8 @@ class Meta:
                 self.inner_stats["stats_correct"] += 1
             if leds.success_info["actual_val"][0] == leds.success_info["graph_guess"][1]:
                 self.inner_stats["graph_correct"] += 1
+                
+        self.optimize()
     
     def step_value(self, value, reverse = False):
         step = self.meta_values[value]["step"]
@@ -107,43 +109,50 @@ class Meta:
         return new_correct
     
     def get_current_std_dev(self):
-        correct = self.get_current_correct()
-        incorrect = 1 - correct
+        correct = 1.00 if self.get_current_correct() > 1.00 else self.get_current_correct() 
+        incorrect = 0.0 if (1.0 - correct) < 0.0 else (1.0 - correct)
         total = self.inner_stats["total"] - self.inner_stats["last_update"]
-        return sqrt(correct * incorrect * total)
+        return sqrt((correct*incorrect)/total)
     
     def performance_eval(self, metric_name):
         print "evaluating performance..."
         ret_val = True
         old_correct, old_std_dev = self.inner_stats["old_values"][-1]
         new_correct = self.get_current_correct()
-        if new_correct > (old_correct + old_std_dev): #the change had a positive effect (~2 std_dev's better then old)
+        print "new_correct %s, old_correct %s, std_dev %s" %(new_correct, old_correct, old_std_dev)
+        if new_correct > (old_correct + old_std_dev): #the change had a positive effect (std_dev's better then old)
+            print "Improvement, permanent change"
             self.step_value(metric_name)
             ret_val = False
         elif new_correct < (old_correct - old_std_dev):
+            print "Regression, remove last change"
             self.step_value(metric_name, reverse=True)
         return ret_val
     
     def get_random_meta_value(self):
         values = [value for value in self.meta_values.keys()]
         ret = values[random.randrange(len(values))]
-        print "%s meta-value being evaluated next" % ret
-        return 
+        return ret
     
     def optimize(self):
         new_value_required = True
-        if self.meta_values["update_freq"] > (self.inner_stats["total"] - self.inner_stats["last_update"]):
+        if self.meta_values["update_freq"]["value"] > (self.inner_stats["total"] - self.inner_stats["last_update"]):
             return
         else:
+            print "optimizing meta learning"
             if self.inner_stats["last_value"]: #if a value was worked on, evaluate it.
-                new_value_required = performance_eval(self.inner_stats["last_value"])
+                new_value_required = self.performance_eval(self.inner_stats["last_value"])
+                if not new_value_required:
+                    print "value successful, incrementing old value"
             
             self.inner_stats["old_values"].append((self.get_current_correct(), self.get_current_std_dev()))
             self.inner_stats["last_update"] = self.inner_stats["total"]
             self.inner_stats["last_correct"] = self.inner_stats["correct"]
-            if new_value_required:
-                val = self.get_random_meta_value()
-                self.inner_stats["last_value"] = val
-                self.step_value(val)
+            
+            val = self.inner_stats["last_value"] if not new_value_required else self.get_random_meta_value()     
+            self.inner_stats["last_value"] = val
+            self.step_value(val)
+            print "updating value %s" %val
+                
     
 

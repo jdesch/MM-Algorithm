@@ -38,9 +38,7 @@ class Connective:
                     neighbors = self.graph.get_neighbors(node)
                     solved = False
                     if neighbors:
-                        #print "vote len: %s" %(len(neighbors))
                         for n in neighbors:
-                            #print "tar:%s, type:%s" %(target, n[1].word)
                             if "#" in n[1].word:
                                 if Handler.compare_target(target, n[1].word):
                                     solved = True

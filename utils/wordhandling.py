@@ -36,7 +36,7 @@ class Handler(object):
         
         for i,inst in enumerate(set):
             wordlist.append([])
-            tmplist = [w for w in inst.context if w[1] not in punctuation and w[0] not in stopset]
+            tmplist = [w for w in inst.context if isinstance(w, tuple) and w[1] not in punctuation and w[0] not in stopset]
             newpos = tmplist.index(inst.context[inst.position])
             for word in tmplist:
                 if self.pos_lookup.get(word[1]):

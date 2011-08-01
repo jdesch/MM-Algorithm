@@ -61,7 +61,7 @@ def test(test_iter, folds, training_folds):
     mem = Memory()
     for i in range(test_iter):
         print "iteration %d ..." % (i + 1)
-        ini_set = split_set(folds, senseval.instances())
+        ini_set = split_set2(folds, senseval.instances()[0:])
         for j in range(folds):
             print"...fold %d ..." % (j + 1)
             sets = partition_set(training_folds, ini_set, j)
@@ -74,10 +74,7 @@ def main(argv):
     correct = 0.0
     total = 0.0
     results = test(iter, 5, 4)
-    for r in results:
-        correct += r[0]
-        total += r[1]    
-    print "accuracy= %3.1f %% over %d attempts" % ((correct / total * 100), total)
+    print "%3.1f %% accuracy" %(result * 100)
     
 def test_main():
     mem = Memory()
@@ -97,5 +94,5 @@ def test_main():
     
 if __name__ == "__main__":
     from utils.serializer import Serializer
-    test_main()
-    #main(sys.argv[1:])
+    #test_main()
+    main(sys.argv[1:])
