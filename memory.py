@@ -73,7 +73,6 @@ class Memory(object):
             leds.add_discovered_words(words)
             graph_vote = self.connect.vote(words, target, self.meta.meta_values, leds)
             stat_vote = self.stats.vote2(words, target, leds)
-            #print "g_vote: %3.3f, %s, s_vote: %3.3f, %s" %(graph_vote[0], graph_vote[1], stat_vote[0], stat_vote[1])
             return self.meta.vote(graph_vote, stat_vote)
         else:
             return self.stats.best_guess(target, leds)
@@ -84,6 +83,7 @@ class Memory(object):
             words = self.stats.get_best_words(target[i][0][0], [w[0] for w in wordlist[i]], self.meta.meta_values)
             vote = self.compose_answer(words, target[i][0][0], leds)
             leds.completed(target[i][2], vote)
+            print "\t\t actual val: %s" %(target[i][2])
             self.meta.learn(leds, self.connect.graph, self.stats.words)
         self.meta.optimize()
     
@@ -102,8 +102,9 @@ class Memory(object):
         
         for i in range(len(wordlist)):
             guess = self.guess(wordlist[i], target_info[i])
-            #print "actual val: %s" %(correct_value[i][0])
+            print "\t\t actual val: %s" %(correct_value[i][0])
             if guess == correct_value[i][0]:
                 correct += 1
+        print "test accuracy: %s" %(float(correct)/float(len(wordlist)))
         return float(correct)/float(len(wordlist))
     

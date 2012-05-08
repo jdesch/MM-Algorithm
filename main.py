@@ -65,16 +65,16 @@ def test(test_iter, folds, training_folds):
         for j in range(folds):
             print"...fold %d ..." % (j + 1)
             sets = partition_set(training_folds, ini_set, j)
+            print "-$$Train time$$-"
             mem.train(sets[0])
-            results = mem.test(sets[1])
+            print "-$$results time$$-"
+            results.append(mem.test(sets[1]))
     return results
 
 def main(argv):
     iter = 1 if len(argv) == 0 else int(argv[0])
-    correct = 0.0
-    total = 0.0
     results = test(iter, 5, 4)
-    print "%3.1f %% accuracy" %(result * 100)
+    print "%3.1f %% accuracy" %( sum(results) / len(results) * 100)
     
 def test_main():
     mem = Memory()
@@ -89,8 +89,8 @@ def test_main():
     #mem.save_values("/tmp/mem_internals")
     #mem.load_values("/tmp/mem_internals")
     print "------*********testing**********------"
-    result = mem.test(data_set[1])
-    print "%3.1f %% accuracy" %(result * 100)
+    results = mem.test(data_set[1])
+    print "%3.1f %% accuracy" %(sum(results)/len(results) * 100)
     
 if __name__ == "__main__":
     from utils.serializer import Serializer
